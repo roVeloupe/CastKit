@@ -276,8 +276,6 @@ private struct PatchNotice: Identifiable {
     let message: String
 }
 
-extension PatchProject: Identifiable {}
-
 /// Minimal on-device store for patch projects (Documents/Patches).
 enum PatchProjectStore {
     private static var directory: URL {

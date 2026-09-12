@@ -13,6 +13,7 @@ settings:
     CODE_SIGN_STYLE: Automatic
     CODE_SIGNING_REQUIRED: "NO"
     CODE_SIGNING_ALLOWED: "NO"
+    OTHER_LDFLAGS: "-lz"
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
 targets:

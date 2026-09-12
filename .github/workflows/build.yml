@@ -21,7 +21,9 @@ jobs:
       run: xcodegen generate
 
     - name: Build (unsigned)
+      id: build
       run: |
+        mkdir -p build
         xcodebuild build \
           -project CastKit.xcodeproj \
           -scheme CastKit \
@@ -32,7 +34,13 @@ jobs:
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGN_IDENTITY= \
           DEVELOPMENT_TEAM= \
-          ONLY_ACTIVE_ARCH=YES
+          ONLY_ACTIVE_ARCH=YES > build/build.log 2>&1
+        status=$?
+        tail -n 120 build/build.log
+        if [ $status -ne 0 ]; then
+          echo "::error::$(tail -c 6000 build/build.log | sed 's/%/%25/g' | tr '\r' '%0D' | tr '\n' '%0A')"
+          exit $status
+        fi
 
     - name: Locate .app bundle
       id: app
