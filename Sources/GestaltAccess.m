@@ -1,6 +1,6 @@
 //
 //  GestaltAccess.m
-//  GestaltEdit
+//
 //
 //  bad_query path traversal (iOS 26 / 27):
 //       class 13, MobileGestalt SystemGroup, part 3, target absolute path,
@@ -25,7 +25,7 @@ static NSString * const kBadQueryMobileGestaltCacheDirectory =
 
 static NSError *GestaltError(NSInteger code, NSString *message)
 {
-    return [NSError errorWithDomain:@"com.gestaltedit.access"
+    return [NSError errorWithDomain:@"com.castkit.access"
                                code:code
                            userInfo:@{ NSLocalizedDescriptionKey: message }];
 }

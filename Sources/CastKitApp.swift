@@ -2,9 +2,7 @@
 //  CastKitApp.swift
 //  CastKit
 //
-//  Entry point. Integrated from:
-//    - GestaltEdit (frs0n/GestaltEdit) — MobileGestalt editing engine + presets
-//    - 3105 (YangJiiii/3105) — .3105 encrypted patch package codec
+//  Entry point. Primary source integrations are documented in README.md.
 //
 
 import SwiftUI
@@ -36,7 +34,7 @@ struct RootTabView: View {
                     TweakWorkbenchView()
                         .tabItem { Label("Tools", systemImage: "switch.2") }
 
-                    NavigationStack { AdvancedGestaltEditorView() }
+                    NavigationStack { AdvancedFieldEditorView() }
                         .tabItem { Label("Fields", systemImage: "list.bullet.rectangle") }
 
                     BackupLibraryView()

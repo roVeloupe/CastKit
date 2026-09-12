@@ -1,6 +1,6 @@
 //
 //  BadQueryBridge.m
-//  GestaltEdit
+//
 //
 //  Independent Objective-C integration of the query used by
 //  https://github.com/forcequitOS/bad_query

@@ -1,6 +1,6 @@
 //
 //  BadQueryBridge.h
-//  GestaltEdit
+//
 //
 //  Path-based ContainerManager query derived from forcequitOS/bad_query.
 //

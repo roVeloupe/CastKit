@@ -41,7 +41,7 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeName</key>
-			<string>3105 Patch Package</string>
+			<string>CastKit Patch Package</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>LSHandlerRank</key>

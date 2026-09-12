@@ -294,7 +294,7 @@ private struct BackupRow: View {
     }
 }
 
-struct AdvancedGestaltEditorView: View {
+struct AdvancedFieldEditorView: View {
     @EnvironmentObject private var viewModel: GestaltViewModel
 
     @State private var searchText = ""

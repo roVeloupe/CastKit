@@ -1,6 +1,6 @@
 //
 //  GestaltAccess.h
-//  GestaltEdit
+//
 //
 //  High-level service that uses bad_query to acquire a read/write sandbox
 //  extension, then reads, edits, saves and backs up

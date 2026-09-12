@@ -2,16 +2,13 @@
 //  PatchLibraryView.swift
 //  CastKit
 //
-//  .3105 encrypted patch package support, integrated from
-//  YangJiiii/3105. Encodes/decodes PatchProject payloads using the
-//  same binary envelope format (magic "3105PATCH\0") so packages
-//  created here round-trip with 3105 on other devices.
-//
+//  Encrypted patch package support: creates, imports, and exports
+//  portable patch projects wrapped in an AES-GCM + PBKDF2 envelope.
 
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Library of .3105 patch projects on this device.
+/// Library of patch projects on this device.
 struct PatchLibraryView: View {
     @State private var projects: [PatchProject] = []
     @State private var showingCreateSheet = false
@@ -30,10 +27,10 @@ struct PatchLibraryView: View {
                 Button {
                     showingImporter = true
                 } label: {
-                    Label("Import .3105 Package", systemImage: "square.and.arrow.down")
+                    Label("Import Patch Package", systemImage: "square.and.arrow.down")
                 }
             } footer: {
-                Text("Packages use the encrypted 3105 envelope format (AES-GCM + PBKDF2). Imported projects can be inspected and re-exported.")
+                Text("Packages use an encrypted envelope format (AES-GCM + PBKDF2). Imported projects can be inspected and re-exported.")
             }
 
             Section("Local Projects") {
@@ -164,11 +161,11 @@ private struct PatchProjectDetailView: View {
                 Button {
                     export()
                 } label: {
-                    Label("Export .3105 Package", systemImage: "square.and.arrow.up")
+                    Label("Export Patch Package", systemImage: "square.and.arrow.up")
                 }
                 .disabled(project.rules.isEmpty)
             } footer: {
-                Text("Exports in the unencrypted (public key) envelope variant — import it in 3105 or share with others.")
+                Text("Exports in the unencrypted (public key) envelope variant — share it with other CastKit installs.")
             }
         }
         .navigationTitle(project.name)
@@ -186,7 +183,7 @@ private struct PatchProjectDetailView: View {
         do {
             let encoded = try PatchPackageCodec.encodeNew(project: project, password: nil)
             let tmp = FileManager.default.temporaryDirectory
-                .appendingPathComponent("\(project.name).3105")
+                .appendingPathComponent("\(project.name).patchpkg")
             try encoded.data.write(to: tmp, options: .atomic)
             exported = ExportItem(url: tmp)
         } catch {
@@ -294,7 +291,7 @@ enum PatchProjectStore {
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .binary
         let data = try encoder.encode(project)
-        try data.write(to: directory.appendingPathComponent("\(project.id.uuidString).p3105"))
+        try data.write(to: directory.appendingPathComponent("\(project.id.uuidString).patchpkg"))
     }
 
     static func loadProjects() throws -> [PatchProject] {
@@ -304,7 +301,7 @@ enum PatchProjectStore {
             at: directory,
             includingPropertiesForKeys: nil
         )
-        .filter { $0.pathExtension == "p3105" }
+        .filter { $0.pathExtension == "patchpkg" }
         .compactMap { url -> PatchProject? in
             guard let data = try? Data(contentsOf: url) else { return nil }
             return try? decoder.decode(PatchProject.self, from: data)
@@ -313,7 +310,7 @@ enum PatchProjectStore {
 
     static func delete(_ project: PatchProject) throws {
         try FileManager.default.removeItem(
-            at: directory.appendingPathComponent("\(project.id.uuidString).p3105")
+            at: directory.appendingPathComponent("\(project.id.uuidString).patchpkg")
         )
     }
 }

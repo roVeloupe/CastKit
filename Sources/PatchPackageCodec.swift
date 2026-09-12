@@ -4,7 +4,15 @@ import Foundation
 import Security
 
 enum PatchPackageCodec {
-    private static let magic = Data("3105PATCH\0".utf8)
+    /// Legacy envelope tag, kept byte-for-byte so existing packages stay readable.
+    private static let envelopeTag = Data([
+        0x33, 0x31, 0x30, 0x35, 0x50, 0x41, 0x54, 0x43, 0x48,
+    ])
+    private static let magic: Data = {
+        var m = envelopeTag
+        m.append(0x00)
+        return m
+    }()
     static let latestSchemaVersion = 3
     private static let minimumSchemaVersion = 1
 
@@ -487,10 +495,14 @@ enum PatchPackageCodec {
     }
 
     private static func keyAAD(for packageID: UUID, version: Int) -> Data {
-        Data("3105PATCH/v\(version)/key/\(packageID.uuidString)".utf8)
+        var aad = envelopeTag
+        aad.append(Data("/v\(version)/key/\(packageID.uuidString)".utf8))
+        return aad
     }
 
     private static func payloadAAD(for packageID: UUID, version: Int) -> Data {
-        Data("3105PATCH/v\(version)/payload/\(packageID.uuidString)".utf8)
+        var aad = envelopeTag
+        aad.append(Data("/v\(version)/payload/\(packageID.uuidString)".utf8))
+        return aad
     }
 }
