@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: macos-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
     - name: Checkout
@@ -35,13 +35,14 @@ jobs:
           ONLY_ACTIVE_ARCH=YES
 
     - name: Locate .app bundle
+      id: app
       run: |
         APP_PATH=$(find build/DerivedData/Build/Products/Release-iphoneos -name "*.app" -maxdepth 1 -type d | head -1)
         echo "APP_PATH=$APP_PATH" >> "$GITHUB_OUTPUT"
         echo "$APP_PATH" > build/app_path.txt
         ls -la "$APP_PATH/"
 
-    - name: Sign with enterprise cert
+    - name: Sign with enterprise cert (optional)
       if: env.ENTERPRISE_P12_BASE64 != ''
       env:
         CERT_NAME: ${{ secrets.ENTERPRISE_CERT_NAME }}
@@ -62,7 +63,6 @@ jobs:
         security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
-        # PEM 拆分避免 macOS security 对 PBES2 p12 的兼容问题
         openssl pkcs12 -in build/signing/enterprise.p12 \
           -passin pass:"$ENTERPRISE_P12_PASSWORD" -nocerts -nodes \
           -out build/signing/private-key.pem 2>&1 | tail -1
@@ -75,28 +75,20 @@ jobs:
         security list-keychains -s "$KEYCHAIN_PATH"
         security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
-        echo "=== codesign ==="
         codesign -f -s "$CERT_NAME" \
           --entitlements "$ENT_FILE" \
           --deep --options runtime \
           "$APP_PATH" 2>&1
-        echo "✅ 签名完成"
-
-        cp "$ENT_FILE" "$APP_PATH/CastKit.entitlements"
+        echo "signed with enterprise cert"
 
     - name: Ad-hoc sign (fallback)
       if: env.ENTERPRISE_P12_BASE64 == ''
       run: |
-        set -e
         APP_PATH=$(cat build/app_path.txt)
-        ENT_FILE="Resources/CastKit.entitlements"
-
         codesign -f -s - \
-          --entitlements "$ENT_FILE" \
-          --deep --options runtime \
-          "$APP_PATH"
-        cp "$ENT_FILE" "$APP_PATH/CastKit.entitlements"
-        echo "✅ ad-hoc 签名完成"
+          --entitlements "Resources/CastKit.entitlements" \
+          --deep "$APP_PATH"
+        echo "ad-hoc signed"
 
     - name: Package IPA
       run: |
@@ -107,10 +99,10 @@ jobs:
         rm -rf build/Payload
         mkdir -p build/Payload
         cp -r "$APP_PATH" build/Payload/
-        cd build && zip -r "$IPA_NAME" Payload > /dev/null && cd ..
-        mv "build/$IPA_NAME" "build/${IPA_NAME}"
-        ls -la build/*.ipa
+        cd build && zip -qry "$IPA_NAME" Payload && cd ..
+
         echo "IPA_PATH=build/$IPA_NAME" >> "$GITHUB_OUTPUT"
+        ls -la build/*.ipa
 
     - name: Upload IPA
       uses: actions/upload-artifact@v4
@@ -118,13 +110,3 @@ jobs:
         name: CastKit-iOS
         path: build/*.ipa
         if-no-files-found: error
-
-    - name: Upload build log
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: build-logs
-        path: |
-          build/**/*.xcactivitylog
-          build/**/*.xcodeproj
-        if-no-files-found: ignore
