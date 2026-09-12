@@ -27,8 +27,7 @@ targets:
       - path: Resources
         excludes:
           - "*.entitlements"
-    info:
-      path: Resources/Info.plist
+          - "Info.plist"
     settings:
       base:
         PRODUCT_NAME: CastKit
