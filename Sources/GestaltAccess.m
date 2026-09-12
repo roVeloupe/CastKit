@@ -108,7 +108,7 @@ static BOOL GestaltWriteAll(int fd, NSData *data)
 {
     if (!GestaltAccess.isRunningSupportedOS) {
         if (error) *error = GestaltError(0, NSLocalizedString(
-            @"GestaltEdit currently supports only iOS and iPadOS 27 beta 1 through beta 4.", nil));
+            @"CastKit currently supports only iOS and iPadOS 27 beta 1 through beta 4.", nil));
         return NO;
     }
 

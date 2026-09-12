@@ -14,7 +14,7 @@ struct UnsupportedOSView: View {
                 .foregroundStyle(.secondary)
             Text("Unsupported OS Version")
                 .font(.title2.weight(.semibold))
-            Text("GestaltEdit currently supports only iOS and iPadOS 27 beta 1 through beta 4.")
+            Text("CastKit currently supports only iOS and iPadOS 27 beta 1 through beta 4.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
         }
@@ -39,32 +39,6 @@ struct TweakWorkbenchView: View {
                         tweakSection(category)
                     }
 
-                }
-
-                Section(String(localized: "Developer")) {
-                    DeveloperFooter()
-
-                    PlacardPromotionLink()
-
-                    NavigationLink {
-                        RewardCodeView()
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "heart.fill")
-                                .foregroundStyle(.pink)
-                                .frame(width: 40, height: 40)
-
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("打赏开发者")
-                                Text("扫描赞赏码支持 SUSS")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            Spacer()
-                        }
-                        .frame(minHeight: 40)
-                    }
                 }
             }
             .navigationTitle("MobileGestalt")
@@ -189,110 +163,6 @@ struct TweakWorkbenchView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .background(.bar)
-    }
-}
-
-private struct PlacardPromotionLink: View {
-    private let placardURL = URL(string: "https://github.com/frs0n/placard")!
-
-    var body: some View {
-        Link(destination: placardURL) {
-            HStack(spacing: 12) {
-                placardIcon
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 40, height: 40)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Placard")
-                        .font(.body.weight(.medium))
-                    Text("iPhone 动态壁纸")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-            }
-            .frame(minHeight: 40)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Placard，iPhone 动态壁纸，点击打开 GitHub")
-    }
-
-    private var placardIcon: Image {
-        guard let url = Bundle.main.url(forResource: "PlacardIcon", withExtension: "png"),
-              let image = UIImage(contentsOfFile: url.path) else {
-            return Image(systemName: "rectangle.portrait.on.rectangle.portrait.angled")
-        }
-        return Image(uiImage: image)
-    }
-}
-
-private struct DeveloperFooter: View {
-    private let douyinURL = URL(string: "https://v.douyin.com/hHHMAlF5bE0/")!
-
-    var body: some View {
-        Link(destination: douyinURL) {
-            HStack(spacing: 12) {
-                avatarImage
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 40, height: 40)
-                    .clipShape(Circle())
-
-                Text("SUSS")
-                    .font(.subheadline.weight(.medium))
-
-                Spacer()
-            }
-            .frame(minHeight: 40)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("开发者 SUSS，点击打开抖音")
-    }
-
-    private var avatarImage: Image {
-        guard let url = Bundle.main.url(forResource: "SUSSAvatar", withExtension: "jpg"),
-              let image = UIImage(contentsOfFile: url.path) else {
-            return Image(systemName: "person.crop.circle")
-        }
-        return Image(uiImage: image)
-    }
-}
-
-private struct RewardCodeView: View {
-    private let rewardCodeImage: UIImage = {
-        let imageURL = Bundle.main.url(forResource: "RewardCode", withExtension: "jpg")!
-        return UIImage(contentsOfFile: imageURL.path)!
-    }()
-
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 18) {
-                Image(uiImage: rewardCodeImage)
-                    .resizable()
-                    .scaledToFit()
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
-                    .accessibilityLabel("SUSS Reward Code")
-
-                Text("感谢你对 SUSS 的支持")
-                    .font(.headline)
-                    .multilineTextAlignment(.center)
-
-                Text("打开微信扫描上方赞赏码")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-            .frame(maxWidth: 560)
-            .padding(20)
-            .frame(maxWidth: .infinity)
-        }
-        .background(Color(uiColor: .systemGroupedBackground))
-        .navigationTitle("打赏 SUSS")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

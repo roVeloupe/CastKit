@@ -1,11 +1,4 @@
 "Tools" = "工具";
-"Developer" = "开发者";
-"Support the Developer" = "赞赏作者";
-"Scan the reward code to support SUSS" = "扫描赞赏码支持 SUSS";
-"SUSS Reward Code" = "SUSS 赞赏码";
-"Thank you for supporting SUSS" = "感谢你对 SUSS 的支持";
-"Open WeChat and scan the code above" = "打开微信扫描上方赞赏码";
-"Support SUSS" = "赞赏 SUSS";
 "Fields" = "字段";
 "Backups" = "备份";
 "Restore" = "恢复";
@@ -17,7 +10,7 @@
 "Reading MobileGestalt…" = "正在读取 MobileGestalt…";
 "Unable to read MobileGestalt" = "无法读取 MobileGestalt";
 "Unsupported OS Version" = "不支持的系统版本";
-"GestaltEdit currently supports only iOS and iPadOS 27 beta 1 through beta 4." = "GestaltEdit 目前仅支持 iOS 和 iPadOS 27 beta 1 至 beta 4。";
+"CastKit currently supports only iOS and iPadOS 27 beta 1 through beta 4." = "CastKit 目前仅支持 iOS 和 iPadOS 27 beta 1 至 beta 4。";
 "Reload" = "重新读取";
 "Connected" = "已连接";
 "Current Device" = "当前设备";

@@ -23,7 +23,7 @@ targets:
     sources:
       - path: Sources
         excludes:
-          - GestaltEdit-Bridging-Header.h
+          - CastKit-Bridging-Header.h
       - path: Resources
         excludes:
           - "*.entitlements"
@@ -34,7 +34,7 @@ targets:
         PRODUCT_NAME: CastKit
         PRODUCT_BUNDLE_IDENTIFIER: com.castkit.CastKit
         INFOPLIST_FILE: Resources/Info.plist
-        SWIFT_OBJC_BRIDGING_HEADER: Sources/GestaltEdit-Bridging-Header.h
+        SWIFT_OBJC_BRIDGING_HEADER: Sources/CastKit-Bridging-Header.h
         DEVELOPMENT_ASSET_PATHS: '""'
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 1.0.0

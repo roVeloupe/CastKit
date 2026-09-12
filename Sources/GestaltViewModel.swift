@@ -58,7 +58,7 @@ final class GestaltViewModel: ObservableObject {
         do {
             try access.connect()
             guard let dictionary = try access.readGestalt() as? [String: Any] else {
-                throw GestaltEditError.invalidPlist
+                throw CastKitError.invalidPlist
             }
             plist = GestaltPlist(dict: dictionary)
             isDirty = false
@@ -104,7 +104,7 @@ final class GestaltViewModel: ObservableObject {
             }
             if changesModelName {
                 let name = modelName.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !name.isEmpty else { throw GestaltEditError.emptyModelName }
+                guard !name.isEmpty else { throw CastKitError.emptyModelName }
                 try pending.setModelName(name)
             }
             var expectedConfiguration: AIRegionConfiguration?
@@ -181,7 +181,7 @@ final class GestaltViewModel: ObservableObject {
                 format: &format
             ) as? [String: Any],
                   dictionary["CacheExtra"] is [String: Any] else {
-                throw GestaltEditError.invalidBackup
+                throw CastKitError.invalidBackup
             }
             let backup = try GestaltBackupStore.create(from: data)
             refreshBackups()
@@ -208,7 +208,7 @@ final class GestaltViewModel: ObservableObject {
                 options: [],
                 format: &format
             ) as? [String: Any] else {
-                throw GestaltEditError.invalidBackup
+                throw CastKitError.invalidBackup
             }
             save(GestaltPlist(dict: dictionary), expectedAIRegion: nil)
         } catch {
@@ -246,7 +246,7 @@ final class GestaltViewModel: ObservableObject {
             _ = try GestaltBackupStore.create(from: originalData)
             try access.saveGestalt(pendingPlist.dict)
             guard let verification = try access.readGestalt() as? [String: Any] else {
-                throw GestaltEditError.invalidPlist
+                throw CastKitError.invalidPlist
             }
             let verifiedPlist = GestaltPlist(dict: verification)
 
@@ -255,14 +255,14 @@ final class GestaltViewModel: ObservableObject {
                 guard cacheExtra["h63QSdBCiT/z0WU6rdQv6Q"] as? String == "LL",
                       cacheExtra["yK+xavymRGZ3xWc1tb8XDg"] as? String == "LL/A",
                       cacheExtra["97JDvERpVwO+GHtthIh7hA"] as? String == expectedAIRegion.profile.regulatoryModel else {
-                    throw GestaltEditError.verificationFailed
+                    throw CastKitError.verificationFailed
                 }
                 if expectedAIRegion.requiresDeviceSpoofing {
                     guard cacheExtra["A62OafQ85EJAiiqKn4agtg"] as? Int == 1,
                           cacheExtra["h9jDsbgj7xIVeIQ8S3/X3Q"] as? String == expectedAIRegion.spoofedProductType,
                           cacheExtra["oYicEKzVTz4/CxxE05pEgQ"] as? String == expectedAIRegion.spoofedHardwareModel,
                           cacheExtra["5pYKlGnYYBzGvAlIU8RjEQ"] as? String == expectedAIRegion.spoofedCPUModel else {
-                        throw GestaltEditError.verificationFailed
+                        throw CastKitError.verificationFailed
                     }
                 }
             }
@@ -285,7 +285,7 @@ final class GestaltViewModel: ObservableObject {
     }
 }
 
-private enum GestaltEditError: LocalizedError {
+private enum CastKitError: LocalizedError {
     case invalidPlist
     case invalidBackup
     case verificationFailed
