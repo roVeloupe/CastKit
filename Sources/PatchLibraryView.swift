@@ -136,7 +136,7 @@ private struct PatchProjectRow: View {
 private struct PatchProjectDetailView: View {
     @Environment(\.dismiss) private var dismiss
     let project: PatchProject
-    @State private var exported: URL?
+    @State private var exported: ExportItem?
 
     var body: some View {
         List {
@@ -177,8 +177,8 @@ private struct PatchProjectDetailView: View {
                 Button("Done") { dismiss() }
             }
         }
-        .sheet(item: $exported) { url in
-            ShareSheet(items: [url])
+        .sheet(item: $exported) { item in
+            ShareSheet(items: [item.url])
         }
     }
 
@@ -188,11 +188,17 @@ private struct PatchProjectDetailView: View {
             let tmp = FileManager.default.temporaryDirectory
                 .appendingPathComponent("\(project.name).3105")
             try encoded.data.write(to: tmp, options: .atomic)
-            exported = tmp
+            exported = ExportItem(url: tmp)
         } catch {
             // surface via alert in parent; keep simple for now
         }
     }
+}
+
+/// `URL` isn't `Identifiable`; wrap it so it can be presented via `sheet(item:)`.
+private struct ExportItem: Identifiable {
+    let id = UUID()
+    let url: URL
 }
 
 private struct NewPatchProjectSheet: View {
