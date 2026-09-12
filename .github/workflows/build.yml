@@ -40,7 +40,7 @@ jobs:
         set -e
         tail -n 120 build/build.log
         if [ $status -ne 0 ]; then
-          echo "::error::$(tail -c 6000 build/build.log | sed 's/%/%25/g' | tr '\r' '%0D' | tr '\n' '%0A')"
+          echo "::error::$(grep -E '(error:|fatal error:|BUILD FAILED)' build/build.log | tail -c 6000 | sed 's/%/%25/g' | tr '\r' '%0D' | tr '\n' '%0A')"
           exit $status
         fi
 
