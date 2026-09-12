@@ -14,7 +14,7 @@ import Combine
 // MARK: - Feature Registry
 
 /// 所有可开关的 MobileGestalt patch 功能
-struct GestaltFeature: Identifiable, Hashable {
+struct GestaltFeature: Identifiable {
     let id: String
     let name: String
     let icon: String

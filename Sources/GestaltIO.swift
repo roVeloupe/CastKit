@@ -224,6 +224,6 @@ enum HouseArrestPathTraversal {
         guard targetAbsolute.hasPrefix("/var/containers/") else { return nil }
         guard let idx = targetAbsolute.split(separator: "/").firstIndex(of: "Shared") else { return nil }
         let suffix = targetAbsolute.split(separator: "/")[idx...].joined(separator: "/")
-        return "../".repeatedElement(depthToContainersRoot) + suffix
+        return String(repeating: "../", count: depthToContainersRoot) + suffix
     }
 }
