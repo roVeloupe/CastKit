@@ -321,15 +321,13 @@ struct ApplyView: View {
     // MARK: - Actions
 
     private func runPreflight() {
-        switch HouseArrestExploit.shared.preflight() {
-        case .success:
+        HouseArrestExploit.shared.runPreflight()
+        if HouseArrestExploit.shared.isAvailable {
             haOK = true
-            haStatus = "✅ CVE-2023-41991 可用"
             patcher.appendLog("✅ 预检通过 — HouseArrest 路径遍历可用")
-        case .failure(let err):
+        } else {
             haOK = false
-            haStatus = "❌ \(err.localizedDescription)"
-            patcher.appendLog("❌ 预检失败: \(err.localizedDescription)")
+            patcher.appendLog("❌ 预检失败: \(HouseArrestExploit.shared.statusMessage)")
         }
     }
 
