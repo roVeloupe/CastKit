@@ -6,8 +6,6 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    PRODUCT_BUNDLE_IDENTIFIER: com.castkit.CastKit
-    TARGETED_DEVICE_FAMILY: "1,2"
     GENERATE_INFOPLIST_FILE: "NO"
     ENABLE_BITCODE: "NO"
     CODE_SIGN_STYLE: Manual
@@ -24,6 +22,29 @@ targets:
         INFOPLIST_FILE: Resources/Info.plist
         PRODUCT_NAME: CastKit
         PRODUCT_BUNDLE_IDENTIFIER: com.castkit.CastKit
+        DEVELOPMENT_ASSET_PATHS: '""'
+    dependencies:
+      - sdk: UIKit.framework
+      - sdk: SwiftUI.framework
+      - sdk: Combine.framework
+
+  # ----------------------------------------------------------------
+  # 3105 / HouseArrest mode — bundle ID spoofed to match Apple's
+  # MobileHouseArrest, so enterprise-signed build can communicate
+  # directly with com.apple.housearrestd and escape sandbox container.
+  # ----------------------------------------------------------------
+  CastKitHouseArrest:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    settings:
+      base:
+        INFOPLIST_FILE: Resources/Info.plist
+        PRODUCT_NAME: "3105"
+        PRODUCT_BUNDLE_IDENTIFIER: com.apple.mobile.MobileHouseArrest
+        DEVELOPMENT_ASSET_PATHS: '""'
+        ENABLE_PREVIEWS: "NO"
     dependencies:
       - sdk: UIKit.framework
       - sdk: SwiftUI.framework
