@@ -1,0 +1,26 @@
+# Xcode
+.DS_Store
+*.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/*/xcuserdata/
+*.xcodeproj/project.pbxproj.orig
+build/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.moved-aside
+*.orig
+
+# Swift Package Manager
+.swiftpm/
+.build/
+Packages/
+
+# macOS
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
