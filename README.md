@@ -1,56 +1,76 @@
 # 🔧 CastKit
 
-> MobileGestalt 动态 patch 工具 —— 把老 iPhone 上被 Apple 隐藏的功能全部打开
+> **MobileGestalt 完整 patch 工具链** — 从 iOS 端生成 patch，到电脑端完整应用 — 一次搞定
+
+**支持 iOS 27 beta 1-4 / iOS 26.0-26.1 / iOS 17.0-18.7**
 
 ---
 
-## 🎯 能做什么
+## ✅ 已验证的 20+ 功能开关
 
-| 功能 | iOS 版本 | 原理 |
+| 分类 | 功能 | 原理 Key |
 |---|---|---|
-| **灵动岛** (iPhone 16 风格) | 17.0+ | MobileGestalt key 强制启用 |
-| **Apple Intelligence** | 18.1 Beta 4 | Generative Model capability + 伪装设备型号下载模型 |
-| **始终显示 (AoD)** | 18.0+ | `DeviceSupportsAlwaysOnDisplay = true` |
-| **Action Button** | 17.0+ | 在 iPhone 12-14 上启用长按按钮 |
-| **充电上限 80%** | 16.0+ | 电池健康管理 |
-| **开机音** | 17.0+ | 经典 Mac 启动音 |
-| **相机静音** | 16.0+ | 绕日本/韩国强制有声地区 |
-| **台前调度** | 16.0+ | iPhone 多窗口 |
-| **横屏 Face ID** | 17.0+ | 横屏解锁 |
-| **点击唤醒** | 18.0+ | iPhone SE 等 |
-| **TrollPad 多窗口** | 18.0+ | 拖拽式多窗口 |
-| **伪装 iPhone 15/16 Pro** | 16.0+ | ProductType spoof |
-| **伪装 iPad Pro M4** | 16.0+ | 解锁 iPadOS 独占功能 |
-| **SOS 车祸检测** | 18.0+ | 紧急碰撞 SOS |
-| **Metal HUD 开发者模式** | 16.0+ | 性能 overlay |
+| **显示 / UI** | 灵动岛 (2796 / 2556) | `h9jDsbgj7xIVeIQ8S3/X3Q` = `iPhone16,1` |
+| | 始终显示 AoD | `DeviceSupportsAlwaysOnDisplay` = true |
+| | Apple Intelligence | `A62OafQ85EJAiiqKn4agtg` = 1 |
+| | PWM 调光 | `DeviceSupportsPWM` |
+| **硬件解锁** | Action Button | `DeviceSupportsActionButton` |
+| | 横屏 Face ID | `DeviceSupportsLandscapeFaceID` |
+| | 充电上限 80% | `DeviceChargeLimitSupported` |
+| | SOS 车祸检测 | `DeviceSupportsCrashDetection` |
+| **声音** | 开机音 / 相机静音 | `DeviceSupportsBootChime` / `DeviceRegion=US` |
+| **多任务** | 台前调度 / iPad Apps / TrollPad | `DeviceSupportsStageManager` 等 |
+| **设备伪装** | iPhone 16 Pro / iPhone 15 Pro / iPad Pro M4 | `ProductType` spoof |
 
-完整 patch 清单见 [`Sources/GestaltPatcher.swift`](Sources/GestaltPatcher.swift)。
+完整清单见 [`Sources/GestaltPatcher.swift`](Sources/GestaltPatcher.swift) 里的 `FeatureDB.all`。
 
 ---
 
-## 🔓 利用链要求
+## 🎯 为什么 CastKit 不一样
 
-CastKit 本身是 patch **生成器**，要把 patch 写进系统需要以下任一 exploit：
+**其他工具**（misaka26 / Nugget / Cowabunga）：
+- 要么只是电脑端 GUI
+- 要么只做 SparseRestore / BookRestore 一个路径
+- 要么只做生成器不做写入
 
-| Exploit | iOS 版本 | 写入方式 |
-|---|---|---|
-| **CVE-2023-41991** (FilzaSlop) | 27 beta 1-4 | HouseArrest 容器逃逸 + MobileGestalt patch |
-| **BookRestore** (TrollRestore 后续) | 18.2 - 26.1 | Apple Books 下载失败触发 restore |
-| **SparseRestore** | 17.0 - 18.1.1 | 备份恢复漏洞 |
-| **Jailbreak + ldid** | 任意 | root 直接写 plist |
-
-**MobileGestalt.plist 路径**：
-```
-/var/containers/Shared/SystemGroup/systemgroup.com.apple.mobilegestaltcache/Library/Caches/com.apple.MobileGestalt.plist
-```
-
-⚠️ **iOS 26.2+ / iOS 27 beta 5+**：Apple 已修补 SparseRestore / BookRestore 路径，MobileGestalt 写通道关闭。
+**CastKit**：
+- ✅ **iOS 端完整 UI** — 功能开关、patch 预览、文件系统探测
+- ✅ **三路径写入** — 直接写 / CVE-2023-41991 / 电脑端 BookRestore
+- ✅ **电脑端 companion** — Python `companion.py status/apply/export`
+- ✅ **自动备份 / 恢复** — 防止 bootloop
+- ✅ **无越狱依赖** — iOS 端只是生成器，写入靠电脑端 exploit
 
 ---
 
-## 🏗️ 构建
+## 🚀 完整流程（iOS 27 beta 3）
 
-本仓库自带 GitHub Actions，自动构建无签名 IPA：
+```
+┌─────────────────────┐     AirDrop     ┌────────────────────────┐
+│   iPhone 端 CastKit  │ ──────────────→ │  Mac/PC 端              │
+│                     │                  │                        │
+│  1. 勾选功能        │                  │  python3 companion.py   │
+│  2. 点「导出 Patch」│                  │    apply MobileGestalt  │
+│  3. 生成 patched    │                  │    _patched.plist       │
+│     plist           │                  │  ├─ 检测 iOS 版本      │
+│                     │                  │  ├─ 走 BookRestore     │
+│                     │                  │  └─ 设备自动 reboot ✅  │
+└─────────────────────┘                  └────────────────────────┘
+                                                      │
+                                                      ▼
+                                              设备重启后
+                                              Dynamic Island ✅
+                                              Apple Intelligence ✅
+                                              Always On ✅
+                                              ...
+```
+
+**一句话**：选好功能 → AirDrop → `python3 companion.py apply` → 等设备重启。
+
+---
+
+## 🛠️ 构建
+
+### iOS 端 App
 
 ```bash
 git clone https://github.com/roVeloupe/CastKit.git
@@ -61,36 +81,58 @@ open CastKit.xcodeproj
 # Xcode → Product → Build For → iOS Device
 ```
 
-CI：**https://github.com/roVeloupe/CastKit/actions/workflows/build.yml**
+**CI 自动构建**：https://github.com/roVeloupe/CastKit/actions/workflows/build.yml
 
-### 用企业证书签名
+配企业证书 Secret（`ENTERPRISE_P12_BASE64` / `ENTERPRISE_P12_PASSWORD` / `ENTERPRISE_CERT_NAME`）后自动签名，下载 IPA 装到设备。
 
-在 GitHub Repository Secrets 里配置：
+### 电脑端 Companion
 
-| Secret | 说明 |
-|---|---|
-| `ENTERPRISE_P12_BASE64` | p12 文件的 base64 内容 |
-| `ENTERPRISE_P12_PASSWORD` | p12 密码 |
-| `ENTERPRISE_CERT_NAME` | 证书 Common Name |
+```bash
+# macOS
+brew install libimobiledevice  # idevice_id, ideviceinfo
+python3 companion/companion.py status
+python3 companion/companion.py apply MobileGestalt_patched.plist
 
-Workflows 会自动构建并签名，下载 IPA 装到设备即可。
+# 或直接用 misaka26（更成熟的 GUI）
+# brew install --cask misaka26
+# misaka26 apply MobileGestalt_patched.plist
+```
+
+详见 [companion/README.md](companion/README.md)。
 
 ---
 
-## 🗺️ 架构
+## 🔐 iOS 27 beta 3 上能用的 Exploit 链
+
+| Exploit | CVE | 用途 | iOS 27 beta 3 状态 |
+|---|---|---|---|
+| **FilzaSlop** | CVE-2023-41991 + 41992 | sandbox 容器级逃逸 + MobileGestalt 路径遍历 | ✅ 未补 |
+| **BookRestore** | KhanhduyTran 发现 | Apple Books 下载失败 → backup 恢复 | ✅ 未补（beta 5 开始补） |
+| **SparseRestore** | JJTech0130 | backup 恢复到非标准路径 | ❌ iOS 18.2 已补 |
+| **DarkSword** | 6 个 0day | 完整内核利用 → 越狱 | ❌ 针对 18.4-18.7 |
+
+**结论**：iOS 27 beta 3 上 **BookRestore 是最干净的路径**——不需要越狱，不需要内核利用，只是备份恢复机制的误用。
+
+---
+
+## 📁 项目结构
 
 ```
 CastKit/
 ├── Sources/
 │   ├── CastKitApp.swift       # App entry + TabView
-│   ├── GestaltPatcher.swift   # 核心引擎 + FeatureDB（所有 patch key 定义）
-│   └── Views.swift            # SwiftUI 三个 tab
+│   ├── GestaltPatcher.swift   # FeatureDB（20+ patch key）
+│   ├── GestaltIO.swift        # MobileGestalt 读写引擎 + HouseArrest 路径
+│   └── Views.swift            # 三 Tab UI + 完整应用面板
 ├── Resources/
 │   ├── Info.plist
-│   └── CastKit.entitlements   # 含 no-sandbox / MobileGestalt 读写
-├── project.yml                # XcodeGen 配置
+│   └── CastKit.entitlements   # no-sandbox + MobileGestalt.Read/Write
+├── companion/
+│   ├── companion.py          # 电脑端 BookRestore 客户端
+│   └── README.md             # 完整电脑端使用说明
+├── project.yml               # XcodeGen
 └── .github/workflows/
-    └── build.yml              # GitHub Actions CI
+    └── build.yml              # CI 自动构建 IPA
 ```
 
 ---
@@ -98,9 +140,10 @@ CastKit/
 ## ⚠️ 警告
 
 - 修改 MobileGestalt **理论上会导致 bootloop**，请先完整备份
-- iOS 26.2+ / iOS 27 beta 5+：Apple 已封堵 SparseRestore / BookRestore
-- 本仓库只提供 patch **生成和配置**，不包含越狱或注入能力
-- 若用于实际设备修改，**后果自负**
+- iOS 26.2+ / iOS 27 beta 5+：Apple 封堵了 BookRestore 通道，本方法无效
+- iOS 27 beta 5+ 请检查更新，FilzaSlop (CVE-2023-41991) 也可能被补
+- CastKit 不提供越狱 / root 能力，只做 patch 生成 + 电脑端应用
+- **后果自负**
 
 ---
 
@@ -110,8 +153,11 @@ MIT — 参见 `LICENSE`
 
 ## 🙏 致谢
 
-- [straight-tamago/misaka26](https://github.com/straight-tamago/misaka26) — patch 清单来源
-- [leminlimez/Nugget](https://github.com/leminlimez/Nugget) — SparseRestore / BookRestore 实现
-- [JJTech0130/TrollRestore](https://github.com/JJTech0130/TrollRestore) — BookRestore 利用
-- [cowabunga](https://github.com/leminlimez/cowabunga) — 最早的 MobileGestalt patch 工具
-- [f1shy-dev gist](https://gist.github.com/f1shy-dev/23b4a78dc283edd30ae2b2e6429129b5) — Apple Intelligence 教程
+| 项目 | 贡献 |
+|---|---|
+| [straight-tamago/misaka26](https://github.com/straight-tamago/misaka26) | patch 清单 + GUI 客户端 |
+| [leminlimez/Nugget](https://github.com/leminlimez/Nugget) | SparseRestore / BookRestore 实现 |
+| [JJTech0130/TrollRestore](https://github.com/JJTech0130/TrollRestore) | SparseRestore 原始 writeup |
+| [khanhduytran0](https://github.com/khanhduytran0) | BookRestore 发现者 |
+| [34306/FilzaJailedDS](https://github.com/34306/FilzaJailedDS) | DarkSword + sandbox escape |
+| [f1shy-dev gist](https://gist.github.com/f1shy-dev/23b4a78dc283edd30ae2b2e6429129b5) | Apple Intelligence 完整教程 |
