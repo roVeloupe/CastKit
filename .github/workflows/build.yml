@@ -1,4 +1,4 @@
-name: Build CastKit IPA
+name: ci
 
 on:
   push:
