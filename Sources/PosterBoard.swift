@@ -2,51 +2,35 @@
 //  PosterBoard.swift
 //  CastKit — 动态壁纸 / 锁屏壁纸定制引擎
 //
-//  PosterBoard is the iOS 16+ system framework that manages
-//  custom lock-screen / home-screen wallpaper layers.
-//  3105 (YangJiiii) popularized portable wallpaper packages.
-//
-//  We implement two things:
-//    1. .3105 wallpaper package (.plist + .heic layers) importer/exporter
-//    2. Apply logic — writes into App container's PosterBoard plist
-//       (needs HouseArrest exploit to escape to /Library/Preferences/)
+//  3105 (YangJiiii) popularized portable wallpaper packages + .3105 patch format.
 //
 
 import Foundation
 import UIKit
 
-// MARK: - Poster Layer Model
+// MARK: - Poster Layer
 
-/// One layer in a PosterBoard wallpaper (foreground, background, etc.)
+/// One layer in a PosterBoard wallpaper
 struct PosterLayer: Codable, Identifiable {
     let id: String
-    let fileName: String      // .heic or .png file
+    let fileName: String
     let zPosition: Int
     let xOffset: CGFloat
     let yOffset: CGFloat
     let scale: CGFloat
-    let blendMode: String     // "normal", "multiply", "screen"
+    let blendMode: String
     let opacity: CGFloat
-
-    enum CodingKeys: String, CodingKey {
-        case id = "Identifier"
-        case fileName = "FileName"
-        case zPosition = "ZPosition"
-        case xOffset = "XOffset"
-        case yOffset = "YOffset"
-        case scale = "Scale"
-        case blendMode = "BlendMode"
-        case opacity = "Opacity"
-    }
 }
 
-/// Complete wallpaper package
-struct PosterPackage: Codable {
+// MARK: - Poster Package (Identifiable)
+
+struct PosterPackage: Codable, Identifiable {
+    let id: String
     let name: String
     let bundleID: String
     let version: String
     let layers: [PosterLayer]
-    let previewColorHex: String  // fallback when no preview image
+    let previewColorHex: String
 
     enum CodingKeys: String, CodingKey {
         case name = "Name"
@@ -56,15 +40,42 @@ struct PosterPackage: Codable {
         case previewColorHex = "PreviewColorHex"
     }
 
+    init(name: String, bundleID: String, version: String,
+         layers: [PosterLayer], previewColorHex: String) {
+        self.id = bundleID
+        self.name = name
+        self.bundleID = bundleID
+        self.version = version
+        self.layers = layers
+        self.previewColorHex = previewColorHex
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        name = try c.decode(String.self, forKey: .name)
+        bundleID = try c.decode(String.self, forKey: .bundleID)
+        version = try c.decode(String.self, forKey: .version)
+        layers = try c.decode([PosterLayer].self, forKey: .layers)
+        previewColorHex = try c.decode(String.self, forKey: .previewColorHex)
+        id = bundleID
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(name, forKey: .name)
+        try c.encode(bundleID, forKey: .bundleID)
+        try c.encode(version, forKey: .version)
+        try c.encode(layers, forKey: .layers)
+        try c.encode(previewColorHex, forKey: .previewColorHex)
+    }
+
     static let defaultDark = PosterPackage(
         name: "暗夜紫",
         bundleID: "com.castkit.poster.darkpurple",
         version: "1.0",
-        layers: [
-            PosterLayer(id: "bg", fileName: "darkpurple_bg.heic",
-                       zPosition: 0, xOffset: 0, yOffset: 0,
-                       scale: 1.0, blendMode: "normal", opacity: 1.0)
-        ],
+        layers: [PosterLayer(id: "bg", fileName: "darkpurple_bg.heic",
+                   zPosition: 0, xOffset: 0, yOffset: 0,
+                   scale: 1.0, blendMode: "normal", opacity: 1.0)],
         previewColorHex: "#1a0a2e"
     )
 
@@ -72,11 +83,9 @@ struct PosterPackage: Codable {
         name: "海洋蓝",
         bundleID: "com.castkit.poster.ocean",
         version: "1.0",
-        layers: [
-            PosterLayer(id: "bg", fileName: "ocean_bg.heic",
-                       zPosition: 0, xOffset: 0, yOffset: 0,
-                       scale: 1.0, blendMode: "normal", opacity: 1.0)
-        ],
+        layers: [PosterLayer(id: "bg", fileName: "ocean_bg.heic",
+                   zPosition: 0, xOffset: 0, yOffset: 0,
+                   scale: 1.0, blendMode: "normal", opacity: 1.0)],
         previewColorHex: "#0d4f7a"
     )
 }
@@ -84,23 +93,16 @@ struct PosterPackage: Codable {
 // MARK: - PosterBoard Engine
 
 final class PosterBoardEngine {
-
     static let shared = PosterBoardEngine()
     private init() {}
-
-    // MARK: - Paths
 
     var postersDir: String {
         let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].path
         return "\(base)/Posters"
     }
 
-    // MARK: - Manage Packages
-
-    /// List all packages we know about (built-in + imported).
     func listPackages() -> [PosterPackage] {
         var builtin: [PosterPackage] = [.defaultDark, .defaultOcean]
-
         let fm = FileManager.default
         if fm.fileExists(atPath: postersDir) {
             for fname in (try? fm.contentsOfDirectory(atPath: postersDir)) ?? [] {
@@ -113,93 +115,54 @@ final class PosterBoardEngine {
         }
         return builtin
     }
-
-    /// Import a .3105 plist package (from file URL or data).
-    func importPackage(from url: URL) throws -> PosterPackage {
-        let data = try Data(contentsOf: url)
-        return try importPackage(data: data)
-    }
-
-    func importPackage(data: Data) throws -> PosterPackage {
-        let pkg = try PropertyListDecoder().decode(PosterPackage.self, from: data)
-
-        let fm = FileManager.default
-        if !fm.fileExists(atPath: postersDir) {
-            try fm.createDirectory(atPath: postersDir, withIntermediateDirectories: true)
-        }
-
-        let fname = "\(pkg.bundleID).3105"
-        let outPath = "\(postersDir)/\(fname)"
-        try data.write(to: URL(fileURLWithPath: outPath), options: .atomic)
-
-        return pkg
-    }
-
-    func deletePackage(_ pkg: PosterPackage) throws {
-        let p = "\(postersDir)/\(pkg.bundleID).3105"
-        if FileManager.default.fileExists(atPath: p) {
-            try FileManager.default.removeItem(atPath: p)
-        }
-    }
-
-    // MARK: - Apply (simplified)
-
-    /// On a jailbroken / HouseArrest device, PosterBoard writes go to:
-    ///   /var/containers/Shared/SystemGroup/com.apple.containershared/.../PosterBoard.plist
-    /// or App container's own preferences.
-    ///
-    /// On a jailed device we can only preview — real apply needs CVE-2023-41991.
-    func apply(_ pkg: PosterPackage, via houseArrest: HouseArrestExploit? = nil) -> Bool {
-        guard let ha = houseArrest else { return false }
-
-        // PosterBoard's config lives in the App container's preferences
-        let prefs = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0].path
-        let target = "\(prefs)/Preferences/\(pkg.bundleID).plist"
-
-        do {
-            let data = try PropertyListEncoder().encode(pkg)
-            let gestaltTarget = "…" // not really; we just know where to write
-            // Actually PosterBoard apply is more complex than this
-            // We'd need to inject into the right process. Skip for now.
-            return false
-        } catch {
-            return false
-        }
-    }
 }
 
-// MARK: - .3105 Patch Package (MobileGestalt patch as a single file)
+// MARK: - .3105 MobileGestalt Patch Package
 
-/// Portable .3105 patch file — bundles a MobileGestalt plist diff
-/// so it can be shared between devices / tools.
-struct PatchPackage: Codable {
+/// Portable MobileGestalt patch — can be shared between devices / tools.
+/// Uses manual Codable because patches is [String: Any].
+struct PatchPackage {
     let name: String
     let description: String
     let version: String
     let iosMin: String
     let iosMax: String
-    let patches: [String: Any]   // MobileGestalt key → value
-
-    enum CodingKeys: String, CodingKey {
-        case name = "Name"
-        case description = "Description"
-        case version = "Version"
-        case iosMin = "iOSMin"
-        case iosMax = "iOSMax"
-        case patches = "Patches"
-    }
+    let patches: [String: Any]
 
     static let fileExtension = "3105-patch"
 
+    func encodeToData() throws -> Data {
+        let dict: [String: Any] = [
+            "Name": name,
+            "Description": description,
+            "Version": version,
+            "iOSMin": iosMin,
+            "iOSMax": iosMax,
+            "Patches": patches
+        ]
+        return try PropertyListSerialization.data(fromPropertyList: dict, format: .xml, options: 0)
+    }
+
+    static func decode(from data: Data) throws -> PatchPackage {
+        let obj = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+        guard let d = obj as? [String: Any] else {
+            throw NSError(domain: "PatchPackage", code: -1, userInfo: [NSLocalizedDescriptionKey: "plist root not a dict"])
+        }
+        return PatchPackage(
+            name: d["Name"] as? String ?? "Untitled",
+            description: d["Description"] as? String ?? "",
+            version: d["Version"] as? String ?? "1.0",
+            iosMin: d["iOSMin"] as? String ?? "16.0",
+            iosMax: d["iOSMax"] as? String ?? "27.0",
+            patches: d["Patches"] as? [String: Any] ?? [:]
+        )
+    }
+
     func write(to url: URL) throws {
-        let encoder = PropertyListEncoder()
-        encoder.outputFormat = .xml
-        let data = try encoder.encode(self)
-        try data.write(to: url, options: .atomic)
+        try encodeToData().write(to: url, options: .atomic)
     }
 
     static func load(from url: URL) throws -> PatchPackage {
-        let data = try Data(contentsOf: url)
-        return try PropertyListDecoder().decode(PatchPackage.self, from: data)
+        try decode(from: Data(contentsOf: url))
     }
 }
